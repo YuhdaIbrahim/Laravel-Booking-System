@@ -30,7 +30,7 @@
     export default {
         name: "ReviewList",
         props: {
-            bookableId: String,
+            bookableId: Number,
         },
         data(){
             return {
