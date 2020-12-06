@@ -1,10 +1,11 @@
 <template>
     <div>
-        <h6 class="text-uppercase text-secondary font-weight-bolder">Check Availability <span v-if="noAvailability"
-                                                                                              class="text-danger"
-        >(Not Available)</span> <span
-                v-if="hasAvailablity" class="text-success"
-        >(Available)</span></h6>
+        <h6 class="text-uppercase text-secondary font-weight-bolder">Check Availability
+            <transition name="fade">
+                <span v-if="noAvailability" class="text-danger">(Not Available)</span>
+                <span v-if="hasAvailablity" class="text-success">(Available)</span>
+            </transition>
+        </h6>
         <div class="form-row">
             <div class="form-group col-md-6">
                 <label for="from">From</label>
@@ -32,7 +33,10 @@
                 />
                 <validation-errors :errors="errorFor('to')"></validation-errors>
             </div>
-            <button @click="check" class="btn btn-secondary btn-block" :disabled="loading">Check!</button>
+            <button @click="check" class="btn btn-secondary btn-block" :disabled="loading">
+                <span v-if="!loading">Check</span>
+                <span v-if="loading"><i class="fa fa-circle-o-notch fa-spin"></i> Checking</span>
+            </button>
         </div>
     </div>
 </template>
@@ -40,32 +44,38 @@
 <script>
     import { is422 } from "../utils/response";
     import validatorErrors from "../utils/validatorErrors";
+
     export default {
         mixins: [validatorErrors],
         props: {
-            bookableId: Number,
+            bookableId: [String, Number],
         },
         data() {
             return {
-                from: null,
-                to: null,
+                from: this.$store.state.lastSearch.from,
+                to: this.$store.state.lastSearch.to,
                 loading: false,
                 status: null,
             }
         },
         methods: {
             check() {
-                this.loadng = true;
+                this.loading = true;
                 this.errors = null;
+                this.status = null;
                 axios.get(`/api/bookables/${ this.bookableId }/availability?from=${ this.from }&to=${ this.to }`)
                     .then(res => {
                         this.status = res.status;
+
                     }).catch(err => {
                     if (is422(err)) {
                         this.errors = err.response.data.errors;
                     }
                     this.status = err.response.status;
-                }).finally(() => this.loading = false);
+                }).finally(() => {
+                    this.loading = false;
+                    this.$store.dispatch('setLastSearch', { from: this.from, to: this.to });
+                });
             },
         },
         computed: {

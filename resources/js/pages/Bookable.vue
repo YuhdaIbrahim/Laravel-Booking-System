@@ -1,23 +1,26 @@
 <template>
-    <div v-if="loading">Data is Loading...</div>
-    <div v-else class="row">
-        <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header">
-                    <h5 class="card-title">{{ bookable.title }}</h5>
+    <div v-if="loading" class="text-center"><i class="fa fa-circle-o-notch fa-spin"></i></div>
+    <transition v-else  name="fade">
+        <div class="row">
+            <div class="col-md-8">
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title">{{ bookable.title }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            {{ bookable.description }}
+                        </p>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <p class="card-text">
-                        {{ bookable.description }}
-                    </p>
-                </div>
+                <ReviewList :bookable-id="this.$route.params.id"></ReviewList>
             </div>
-            <ReviewList :bookable-id="this.$route.params.id"></ReviewList>
+            <div class="col-md-4">
+                <Availability :bookable-id="this.$route.params.id"></Availability>
+            </div>
         </div>
-        <div class="col-md-4">
-            <Availability :bookable-id="this.$route.params.id"></Availability>
-        </div>
-    </div>
+    </transition>
+
 
 </template>
 
