@@ -1,7 +1,10 @@
 <template>
     <div>
+        <success v-if="success">
+            Thanks you for review!
+        </success>
         <fatal-error v-if="error"></fatal-error>
-        <div class="row" v-else>
+        <div class="row" v-if="!success && !error">
             <div :class="[{'col-md-4': twoColumn }, {'d-none': oneColumn}]">
                 <div class="card">
                     <div class="card-body">
@@ -25,14 +28,21 @@
                     </div>
                     <div v-else>
                         <div class="form-group">
-                            <label class="text-muted">Select the star rating (1 is wors - 5 is best)</label>
+                            <label class="text-muted">Select the star rating (1 is worst - 5 is best)</label>
                             <star-rating :value="review.rating" class="fa-3x" v-model="review.rating"></star-rating>
                         </div>
                         <div class="form-group">
                             <label for="content" class="text-muted" >Describe your experience with</label>
-                            <textarea name="content" v-model="review.content" id="content" cols="30" rows="10" class="form-control"></textarea>
+                            <textarea
+                                    name="content"
+                                    v-model="review.content"
+                                    id="content"
+                                    cols="30" rows="10"
+                                    :class="[{'is-invalid': errorFor('content')}]"
+                                    class="form-control"></textarea>
+                            <validation-errors :errors="errorFor('content')"></validation-errors>
                         </div>
-                        <button @click.prevent="submit" :disabled="loading" class="btn btn-lg btn-primary btn-block">Submit</button>
+                        <button @click.prevent="submit" :disabled="sending" class="btn btn-lg btn-primary btn-block">Submit</button>
                     </div>
                 </div>
             </div>
@@ -41,8 +51,11 @@
 </template>
 
 <script>
-    import { is404 } from '../utils/response';
+    import { is404, is422 } from '../utils/response';
+    import validatorErrors from "../utils/validatorErrors";
+
     export default {
+        mixins: [validatorErrors],
         name: "Review",
         data() {
           return {
@@ -55,28 +68,27 @@
               loading: false,
               booking: null,
               error: false,
+              sending: false,
+              success: false,
           }
         },
-        created() {
+        async created() {
             this.review.id = this.$route.params.id;
             this.loading = true;
-            axios.get(`/api/reviews/${this.review.id}`)
-                .then(res => {
-                    this.existingReview = res.data.data
-                })
-                .catch(err => {
-                    if(is404(err)){
-                        return axios.get(`/api/booking-by-review/${this.review.id}`).then(res => {
-                            this.booking = res.data.data;
-                        }).catch(err => {
-                            if(!is404(err)) {
-                                this.error = true;                            }
-                        });
+            try {
+                this.existingReview = ( await axios.get(`/api/reviews/${ this.review.id }`) ).data.data;
+            } catch (err) {
+                if(is404(err)){
+                    try {
+                        this.booking = ( await axios.get(`/api/booking-by-review/${ this.review.id }`) ).data.data;
+                    } catch (e) {
+                        if(!is404(e)) {
+                            this.error = true;
+                        }
                     }
-                })
-                .then(() => {
-                    this.loading = false;
-                });
+                }
+            }
+            this.loading =false;
         },
         computed: {
             alreadyReviewed(){
@@ -97,12 +109,25 @@
         },
         methods: {
             submit(){
-                this.loading = true;
+                this.sending = true;
+                this.success = false;
                 axios.post('/api/reviews', this.review)
-                    .then(res => console.log(res))
-                    .catch(err => (this.error = true))
-                    .then(() => (this.loading = false));
-            }
+                    .then(res => {
+                        this.success = res.status === 201;
+                    })
+                    .catch(err => {
+                        if(is422(err)){
+                            const errors = err.response.data.errors;
+
+                            if(errors["content"] && _.size(errors)){
+                                this.errors = errors;
+                                return;
+                            }
+                        }
+                        this.error = true;
+                    })
+                    .then(() => (this.sending = false));
+            },
         }
     }
 </script>
