@@ -1,18 +1,15 @@
 <template>
     <div>
         <div v-if="loading" class="text-center"><i class="fa fa-circle-o-notch fa-spin"></i></div>
-        <transition name="fade" v-else>
-            <div>
-                <div class="row mb-4" v-for="row in rows" :key="`row${row}`">
-                    <div class="col d-flex align-items-stretch" v-for="(item, index) in bookablesInRow(row) "
-                         :key="'row' + row + index">
-                        <Bookable v-bind="item"></Bookable>
-                    </div>
-                    <div class="col" v-for="p in placeHoklderInRow(row)" :key="`placeholder${row + p}`"></div>
+        <transition-group name="list">
+            <div class="row mb-4" v-for="(row, index) in rows" :key="`row${index}`">
+                <div class="col d-flex align-items-stretch" v-for="(item, index) in bookablesInRow(row) "
+                     :key="'row' + row + index">
+                    <Bookable v-bind="item"></Bookable>
                 </div>
+                <div class="col" v-for="p in placeHoklderInRow(row)" :key="`placeholder${row + p}`"></div>
             </div>
-        </transition>
-
+        </transition-group>
     </div>
 </template>
 

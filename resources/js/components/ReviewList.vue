@@ -4,9 +4,9 @@
         <div v-if="loading" class="text-center">
             <i class="fa fa-circle-o-notch fa-spin"></i>
         </div>
-        <transition v-if="reviews.length > 0 && !loading" name="fade">
-            <div>
-                <div class="border-bottom py-4" v-for="(review, index) in reviews" :key="`review${index}`">
+        <div>
+            <transition-group name="list">
+                <div class="border-bottom py-4" v-for="(review, index) in reviews" :key="`reviews${index}`">
                     <div class="row">
                         <div class="col-md-6">Taka Ibrahim</div>
                         <div class="col-md-6 d-flex justify-content-end"><star-rating class="fa-lg" :value="review.rating"></star-rating></div>
@@ -22,8 +22,8 @@
                         </div>
                     </div>
                 </div>
-            </div>
-        </transition>
+            </transition-group>
+        </div>
 
 
     </div>

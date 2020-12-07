@@ -1,33 +1,46 @@
 <template>
-    <div v-if="loading" class="text-center"><i class="fa fa-circle-o-notch fa-spin"></i></div>
-    <transition v-else name="fade">
+    <div v-if="loading" class="text-center">
+        <transition name="fade">
+            <i class="fa fa-circle-o-notch fa-spin"></i>
+        </transition>
+    </div>
+    <div v-else>
         <div class="row">
             <div class="col-md-8">
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <h5 class="card-title">{{ bookable.title }}</h5>
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="card-title">{{ bookable.title }}</h5>
+                        </div>
+                        <div class="card-body">
+                            <p class="card-text">
+                                {{ bookable.description }}
+                            </p>
+                        </div>
                     </div>
-                    <div class="card-body">
-                        <p class="card-text">
-                            {{ bookable.description }}
-                        </p>
-                    </div>
-                </div>
                 <ReviewList :bookable-id="this.$route.params.id"></ReviewList>
             </div>
             <div class="col-md-4">
-                <Availability class="mb-4" :bookable-id="this.$route.params.id" @availability="checkPrice($event)"></Availability>
+                <Availability class="mb-4" :bookable-id="this.$route.params.id"
+                              @availability="checkPrice($event)"></Availability>
                 <transition name="fade">
                     <price-breakdown v-if="price" :price="price"></price-breakdown>
                 </transition>
                 <transition name="fade">
-                    <button class="btn btn-outline-secondary btn-block" v-if="price" >Book now</button>
+                    <button @click="addToBasket" :disabled="inBasketAlready" class="btn btn-outline-secondary btn-block"
+                            v-if="price">Book now
+                    </button>
+                </transition>
+                <transition name="fade">
+                    <button @click="removeFromBasket" class="btn btn-outline-danger btn-block" v-if="inBasketAlready">
+                        Remove from Cart
+                    </button>
+                </transition>
+                <transition name="fade">
+                    <div v-if="inBasketAlready" class="mt-4 text-muted warning">You already add to cart</div>
                 </transition>
             </div>
         </div>
-    </transition>
-
-
+    </div>
 </template>
 
 <script>
@@ -59,13 +72,19 @@
         },
         computed: {
             ...mapState({
-                lastSearch: 'lastSearch'
+                lastSearch: 'lastSearch',
+                inBasketAlready(state) {
+                    if (!this.bookable) {
+                        return false;
+                    }
+                    return state.basket.items.reduce((result, item) => result || item.bookable.id === this.bookable.id, false)
+                },
             }),
         },
         methods: {
             async checkPrice(has) {
+                this.price = null;
                 if (!has) {
-                    this.price = null;
                     return;
                 }
                 try {
@@ -73,7 +92,23 @@
                 } catch (e) {
                     this.price = null;
                 }
+            },
+            addToBasket() {
+                this.$store.commit('addToBasket', {
+                    bookable: this.bookable,
+                    price: this.price,
+                    dates: this.lastSearch,
+                });
+            },
+            removeFromBasket() {
+                this.$store.commit('removeFromBasket', this.bookable.id);
             }
         }
     }
 </script>
+
+<style scoped>
+    .warning {
+        font-size: 0.7rem;
+    }
+</style>
