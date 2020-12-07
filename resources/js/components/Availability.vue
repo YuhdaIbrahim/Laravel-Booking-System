@@ -59,23 +59,23 @@
             }
         },
         methods: {
-            check() {
+            async check() {
                 this.loading = true;
                 this.errors = null;
                 this.status = null;
-                axios.get(`/api/bookables/${ this.bookableId }/availability?from=${ this.from }&to=${ this.to }`)
-                    .then(res => {
-                        this.status = res.status;
-
-                    }).catch(err => {
-                    if (is422(err)) {
-                        this.errors = err.response.data.errors;
+                
+                try {
+                    this.status = (await axios.get(`/api/bookables/${ this.bookableId }/availability?from=${ this.from }&to=${ this.to }`) ).status;
+                    this.$emit('availability', this.hasAvailablity);
+                } catch (e) {
+                    if (is422(e)) {
+                        this.errors = e.response.data.errors;
                     }
-                    this.status = err.response.status;
-                }).finally(() => {
-                    this.loading = false;
-                    this.$store.dispatch('setLastSearch', { from: this.from, to: this.to });
-                });
+                    this.status = e.response.status;
+                    this.$emit('availability', this.hasAvailablity);
+                }
+                this.loading = false;
+                this.$store.dispatch('setLastSearch', { from: this.from, to: this.to });
             },
         },
         computed: {
