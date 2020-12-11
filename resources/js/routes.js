@@ -2,6 +2,7 @@ import VueRouter from 'vue-router';
 import BookAbles from './pages/Bookables';
 import BookAble from './pages/Bookable';
 import Review from "./pages/Review";
+import Checkout from "./pages/Checkout";
 
 const routes = [
     {
@@ -19,6 +20,11 @@ const routes = [
         component: Review,
         name: 'review'
     },
+    {
+        path: '/checkout',
+        component: Checkout,
+        name: 'checkout'
+    }
 ];
 
 const router = new VueRouter({

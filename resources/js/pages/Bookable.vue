@@ -7,16 +7,16 @@
     <div v-else>
         <div class="row">
             <div class="col-md-8">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                            <h5 class="card-title">{{ bookable.title }}</h5>
-                        </div>
-                        <div class="card-body">
-                            <p class="card-text">
-                                {{ bookable.description }}
-                            </p>
-                        </div>
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h5 class="card-title">{{ bookable.title }}</h5>
                     </div>
+                    <div class="card-body">
+                        <p class="card-text">
+                            {{ bookable.description }}
+                        </p>
+                    </div>
+                </div>
                 <ReviewList :bookable-id="this.$route.params.id"></ReviewList>
             </div>
             <div class="col-md-4">
@@ -26,17 +26,19 @@
                     <price-breakdown v-if="price" :price="price"></price-breakdown>
                 </transition>
                 <transition name="fade">
-                    <button @click="addToBasket" :disabled="inBasketAlready" class="btn btn-outline-secondary btn-block"
+                    <button @click="addToBasket" :disabled="inBasketAlreadyFromGetters"
+                            class="btn btn-outline-secondary btn-block"
                             v-if="price">Book now
                     </button>
                 </transition>
                 <transition name="fade">
-                    <button @click="removeFromBasket" class="btn btn-outline-danger btn-block" v-if="inBasketAlready">
+                    <button @click="removeFromBasket" class="btn btn-outline-danger btn-block"
+                            v-if="inBasketAlreadyFromGetters">
                         Remove from Cart
                     </button>
                 </transition>
                 <transition name="fade">
-                    <div v-if="inBasketAlready" class="mt-4 text-muted warning">You already add to cart</div>
+                    <div v-if="inBasketAlreadyFromGetters" class="mt-4 text-muted warning">You already add to cart</div>
                 </transition>
             </div>
         </div>
@@ -73,13 +75,13 @@
         computed: {
             ...mapState({
                 lastSearch: 'lastSearch',
-                inBasketAlready(state) {
-                    if (!this.bookable) {
-                        return false;
-                    }
-                    return state.basket.items.reduce((result, item) => result || item.bookable.id === this.bookable.id, false)
-                },
             }),
+            inBasketAlreadyFromGetters() {
+                if (!this.bookable) {
+                    return false;
+                }
+                return this.$store.getters.inBasketAlready(this.bookable.id);
+            }
         },
         methods: {
             async checkPrice(has) {
@@ -94,14 +96,14 @@
                 }
             },
             addToBasket() {
-                this.$store.commit('addToBasket', {
+                this.$store.dispatch('addToBasket', {
                     bookable: this.bookable,
                     price: this.price,
                     dates: this.lastSearch,
                 });
             },
             removeFromBasket() {
-                this.$store.commit('removeFromBasket', this.bookable.id);
+                this.$store.dispatch('removeFromBasket', this.bookable.id);
             }
         }
     }

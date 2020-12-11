@@ -1,7 +1,7 @@
 <template>
     <div class="text-center success">
         <i class="fa fa-thumbs-up"></i>
-        <h1 class="mt-4">Review Has been Posted</h1>
+        <h1 class="mt-4">Success</h1>
         <h2>
             <slot></slot>
         </h2>
