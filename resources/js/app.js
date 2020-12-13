@@ -23,6 +23,19 @@ Vue.component("fatal-error", FatalError);
 Vue.component("validation-errors", ValidationErrors);
 Vue.component("success", Success);
 
+window.axios.interceptors.response.use(
+    res => {
+        return res;
+    },
+    err => {
+        if(401 === err.status){
+            store.dispatch('logout');
+        }
+
+        return Promise.reject(err);
+    }
+)
+
 
 const app = new Vue({
     el: '#app',
@@ -31,7 +44,9 @@ const app = new Vue({
     components: {
         "index": Index
     },
-    beforeCreate(){
+    async beforeCreate(){
         this.$store.dispatch('loadStoredState');
+        this.$store.dispatch('loadUser');
+        //
     }
 });

@@ -29,8 +29,8 @@ class AddPriceAndAddressToBookingsTable extends Migration
     {
         Schema::table('bookings', function (Blueprint $table) {
             $table->dropColumn('price');
-            $table->dropForeign('address_id');
-            $table->dropColumn(['address_id']);
+            $table->dropForeign(['address_id']);
+            $table->dropColumn('address_id');
         });
     }
 }

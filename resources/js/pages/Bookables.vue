@@ -55,5 +55,12 @@
                 this.loading = false;
             }).catch(err => console.log(err));
         },
+        async mounted() {
+            try {
+                axios.get("/api/user");
+            } catch (e) {
+                console.log(e);
+            }
+        }
     }
 </script>
